@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ПВС — Калькулятор калорий</title>
+    <style>
+        /* Минималистичный и быстрый дизайн по ТЗ */
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f6f9; color: #333; }
+        header { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 15px 20px; }
+        nav { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
+        nav a { text-decoration: none; color: #007bff; margin-left: 15px; font-weight: bold; }
+        main { max-width: 800px; margin: 30px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); min-height: 400px; }
+        footer { text-align: center; margin-top: 5px; padding: 20px; font-size: 13px; color: #666; border-top: 1px solid #e0e0e0; }
+        .alert { padding: 12px; margin-bottom: 20px; border-radius: 4px; font-weight: bold; }
+        .alert-success { background: #d4edda; color: #155724; }
+        .alert-danger { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav>
+            <a href="{{ url_for('index') }}" style="margin-left: 0; font-size: 18px; color: #333;">🍎 Проект ПВС</a>
+            <div>
+                <a href="{{ url_for('index') }}">Калькулятор</a>
+                {% if session.get('user_name') %}
+                    <span style="margin-left: 15px; color: #555;">Привет, {{ session['user_name'] }}!</span>
+                    <a href="{{ url_for('logout') }}" style="color: #dc3545;">Выйти</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Войти</a>
+                    <a href="{{ url_for('register') }}">Регистрация</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Блок вывода системных сообщений (ошибки/успех) -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Сюда будет подставляться контент других страниц -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>© Проект ПВС, 2026. База данных ПВС является интеллектуальной собственностью. Любое копирование преследуется по закону в соответствии со ст. 1260 ГК РФ.</p>
+        <p><a href="#" style="color: #666;">Политика конфиденциальности</a> | <a href="#" style="color: #666;">Согласие на ОПД</a></p>
+    </footer>
+
+</body>
+</html>

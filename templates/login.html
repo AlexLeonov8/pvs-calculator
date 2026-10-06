@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+</body>
+</html>{% extends 'base.html' %}
+{% block content %}
+<style>
+    .auth-form { display: flex; flex-direction: column; gap: 15px; max-width: 400px; margin: 0 auto; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    input, button { padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+    button { background: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background: #0056b3; }
+</style>
+
+<div style="text-align: center; margin-bottom: 25px;">
+    <h2>Вход в систему</h2>
+    <p style="color: #666;">Войдите, чтобы получить доступ к вашему дневнику питания.</p>
+</div>
+
+<form class="auth-form" method="POST" action="{{ url_for('login') }}">
+    <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="enter@mail.ru" required>
+    </div>
+    <div class="form-group">
+        <label>Пароль</label>
+        <input type="password" name="password" placeholder="Введите ваш пароль" required>
+    </div>
+
+    <button type="submit">Войти</button>
+</form>
+{% endblock %}

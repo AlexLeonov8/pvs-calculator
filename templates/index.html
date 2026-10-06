@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .calc-form { display: flex; flex-direction: column; gap: 15px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    input, select, button { padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+    /* Вызов цифровой клавиатуры на телефонах по НФТ */
+    input[type="number"] { -moz-appearance: textfield; }
+    button { background: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background: #218838; }
+    .result-box { display: none; margin-top: 25px; padding: 15px; background: #e9ecef; border-left: 5px solid #28a745; border-radius: 4px; }
+</style>
+
+<h2>Автоматический расчет суточной нормы КБЖУ</h2>
+<p style="color: #666;">Введите ваши параметры, чтобы система мгновенно рассчитала энергетический баланс по формуле Миффлина-Сан Жеора под вашу цель.</p>
+
+<form class="calc-form" id="pvsForm">
+    <div class="form-group">
+        <label>Ваш пол</label>
+        <select id="gender"><option value="male">Мужской</option><option value="female">Женский</option></select>
+    </div>
+    <div class="form-group">
+        <label>Возраст (лет)</label>
+        <input type="number" id="age" inputmode="numeric" placeholder="Например: 25" required>
+    </div>
+    <div class="form-group">
+        <label>Вес (кг)</label>
+        <input type="number" id="weight" inputmode="numeric" placeholder="Например: 70" required>
+    </div>
+    <div class="form-group">
+        <label>Рост (см)</label>
+        <input type="number" id="height" inputmode="numeric" placeholder="Например: 175" required>
+    </div>
+    <div class="form-group">
+        <label>Уровень физической активности</label>
+        <select id="activity">
+            <option value="1.2">Сидячий образ жизни / без нагрузок</option>
+            <option value="1.375">Легкая активность (тренировки 1-3 раза в неделю)</option>
+            <option value="1.55">Средняя активность (тренировки 3-5 раз в неделю)</option>
+            <option value="1.725">Тяжелые нагрузки (6-7 раз в неделю)</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Цель питания</label>
+        <select id="goal">
+            <option value="maintain">Поддержание текущего веса</option>
+            <option value="lose">Плавное снижение веса (Сушка / Дефицит)</option>
+            <option value="gain">Набор мышечной массы (Профицит)</option>
+        </select>
+    </div>
+    <button type="button" onclick="runClientCalculation()">Рассчитать норму</button>
+</form>
+
+<div class="result-box" id="resultBox">
+    <h3>Ваша суточная норма питания:</h3>
+    <p>Калорийность: <strong id="resCal">0</strong> ккал/день</p>
+    <p>Белки: <strong id="resProt">0</strong> г | Жиры: <strong id="resFat">0</strong> г | Углеводы: <strong id="resCarb">0</strong> г</p>
+</div>
+
+<script>
+function runClientCalculation() {
+    const gender = document.getElementById('gender').value;
+    const age = parseInt(document.getElementById('age').value);
+    const weight = parseFloat(document.getElementById('weight').value);
+    const height = parseFloat(document.getElementById('height').value);
+    const activity = parseFloat(document.getElementById('activity').value);
+    const goal = document.getElementById('goal').value;
+
+    if (!age || !weight || !height) {
+        alert("Пожалуйста, заполните все поля!");
+        return;
+    }
+
+    // Расчет базового обмена веществ (BMR) по Миффлину-Сан Жеору
+    let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+    bmr = (gender === 'male') ? bmr + 5 : bmr - 161;
+
+    // Умножаем на коэффициент активности
+    let calories = bmr * activity;
+
+    // Корректировка пропорций под цель (НФТ проекта)
+    if (goal === 'lose') calories *= 0.85; // Дефицит 15%
+    if (goal === 'gain') calories *= 1.15; // Профицит 15%
+
+    const finalCalories = Math.round(calories);
+
+    // Распределение БЖУ (Белки 30%, Жиры 30%, Углеводы 40%)
+    const proteins = Math.round((finalCalories * 0.3) / 4);
+    const fats = Math.round((finalCalories * 0.3) / 9);
+    const carbs = Math.round((finalCalories * 0.4) / 4);
+
+    // Мгновенный вывод на экран (до 100 мс)
+    document.getElementById('resCal').innerText = finalCalories;
+    document.getElementById('resProt').innerText = proteins;
+    document.getElementById('resFat').innerText = fats;
+    document.getElementById('resCarb').innerText = carbs;
+    document.getElementById('resultBox').style.display = 'block';
+
+    // Сохранение в LocalStorage для Гостя
+    localStorage.setItem('pvs_cached_calc', JSON.stringify({gender, age, weight, height, activity, goal}));
+}
+
+// Автоподгрузка из LocalStorage при перезагрузке
+window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('pvs_cached_calc');
+    if (saved) {
+        const data = JSON.parse(saved);
+        document.getElementById('gender').value = data.gender;
+        document.getElementById('age').value = data.age;
+        document.getElementById('weight').value = data.weight;
+        document.getElementById('height').value = data.height;
+        document.getElementById('activity').value = data.activity;
+        document.getElementById('goal').value = data.goal;
+        runClientCalculation();
+    }
+});
+</script>
+{% endblock %}
